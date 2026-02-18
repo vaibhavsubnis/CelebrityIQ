@@ -6,161 +6,170 @@ This file documents the CelebrityIQ repository for AI assistants (Claude, Copilo
 
 ## Project Overview
 
-**CelebrityIQ** is an application centered on celebrity knowledge. Based on the repository name and context, the project likely involves one or more of:
+**Celebrity IQ** is a daily celebrity guessing game that runs on iOS, Android, and the web. Each day a new celebrity photo is published, divided into 6 tiles. One tile is revealed initially and the player guesses who it is. A correct guess earns points (max 5); a wrong guess reveals another tile and reduces the available points by 1. The game ends on a correct guess or when all 6 tiles are open (0 points).
 
-- AI-powered celebrity trivia / quiz functionality
-- A recommendation or search engine for celebrity information
-- An interactive game or social platform around celebrity knowledge
-
-> As the codebase grows, update this section with the concrete product description, tech stack decisions, and high-level architecture.
+**Architecture:** React Native (Expo) frontend calling a C# ASP.NET Core Web API backed by MongoDB.
 
 ---
 
-## Repository State
-
-This repository was initialized without source code. When code is added, update the sections below to reflect the actual structure, commands, and conventions in use.
-
----
-
-## Directory Structure (expected conventions)
+## Directory Structure
 
 ```
 CelebrityIQ/
-├── CLAUDE.md              # This file — AI assistant guidance
-├── README.md              # Human-facing project overview
+├── CLAUDE.md                           # AI assistant guidance (this file)
+├── README.md                           # Human-facing project overview
 ├── .gitignore
-├── package.json           # (if Node/JS/TS project)
-├── pyproject.toml         # (if Python project)
 │
-├── src/                   # Application source code
-│   ├── components/        # UI components (if frontend exists)
-│   ├── pages/             # Route-level views / Next.js pages
-│   ├── api/               # Backend API handlers or routes
-│   ├── services/          # Business logic, external API clients
-│   ├── models/            # Data models / database schemas
-│   ├── utils/             # Shared utility functions
-│   └── types/             # TypeScript type definitions
+├── backend/
+│   ├── CelebrityIQ.API.sln            # .NET solution file
+│   └── CelebrityIQ.API/
+│       ├── CelebrityIQ.API.csproj      # Project file (.NET 8, MongoDB.Driver, Swashbuckle)
+│       ├── Program.cs                  # App entry point, DI, CORS, Swagger
+│       ├── appsettings.json            # Production config
+│       ├── appsettings.Development.json
+│       ├── Controllers/
+│       │   ├── CelebritiesController.cs    # CRUD for celebrity records (admin)
+│       │   └── DailyChallengeController.cs # Daily game endpoints
+│       ├── Models/
+│       │   ├── Celebrity.cs                # Celebrity entity (Name, DOB, Nationality, FieldOfExpertise, ImageUrl)
+│       │   ├── DailyChallenge.cs           # Daily challenge scheduling entity
+│       │   └── GuessRequest.cs             # Request/response DTOs for game API
+│       ├── Services/
+│       │   ├── CelebrityService.cs         # MongoDB CRUD operations for celebrities
+│       │   └── DailyChallengeService.cs    # Daily challenge logic + guess validation
+│       └── Settings/
+│           └── MongoDbSettings.cs          # Typed config for MongoDB connection
 │
-├── tests/                 # Test files mirroring src/ structure
-│   ├── unit/
-│   └── integration/
-│
-├── public/                # Static assets (images, fonts, icons)
-├── docs/                  # Additional documentation
-└── scripts/               # Build, seed, migration scripts
+└── frontend/
+    ├── App.tsx                         # Root component with NavigationContainer
+    ├── app.json                        # Expo config (iOS, Android, Web)
+    ├── babel.config.js
+    ├── index.js                        # registerRootComponent entry
+    ├── package.json                    # Dependencies (Expo, React Navigation)
+    ├── tsconfig.json                   # TypeScript strict mode
+    └── src/
+        ├── components/
+        │   ├── TileGrid.tsx            # 3x2 image grid with reveal/cover logic
+        │   ├── GuessInput.tsx          # Text input + submit button
+        │   └── ScoreDisplay.tsx        # Points, tiles revealed, guesses used
+        ├── navigation/
+        │   └── AppNavigator.tsx        # Bottom tabs (Game, Admin) + admin stack
+        ├── screens/
+        │   ├── GameScreen.tsx          # Main game play screen
+        │   ├── AdminListScreen.tsx     # Celebrity list with edit/delete
+        │   └── AdminEditScreen.tsx     # Add/edit celebrity form
+        ├── services/
+        │   └── api.ts                  # HTTP client for backend API
+        └── types/
+            └── index.ts               # Shared TypeScript interfaces
 ```
-
-Update this tree to match the actual layout once the project structure is established.
 
 ---
 
 ## Tech Stack
 
-> Fill in once decided. Common choices for a project like this:
-
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js / React / Vue |
-| Backend | Node.js (Express/Fastify) / Python (FastAPI/Django) |
-| Database | PostgreSQL / MongoDB / Supabase |
-| Auth | NextAuth.js / Auth0 / Clerk |
-| AI/ML | OpenAI API / Anthropic Claude API / HuggingFace |
-| Hosting | Vercel / Railway / AWS |
-| CI/CD | GitHub Actions |
+| Frontend | React Native (Expo) — iOS, Android, Web |
+| Backend | C# / ASP.NET Core 8 Web API |
+| Database | MongoDB |
+| API Docs | Swagger / OpenAPI (Swashbuckle) |
+| Navigation | React Navigation (bottom tabs + native stack) |
 
 ---
 
 ## Development Workflow
 
-### Initial Setup
+### Prerequisites
+
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [Node.js 18+](https://nodejs.org/)
+- [MongoDB](https://www.mongodb.com/try/download/community) running on `localhost:27017`
+
+### Backend
 
 ```bash
-# Clone the repository
-git clone https://github.com/vaibhavsubnis/CelebrityIQ.git
-cd CelebrityIQ
+cd backend/CelebrityIQ.API
+dotnet restore
+dotnet run              # http://localhost:5000
+dotnet watch run        # with hot-reload
+```
 
-# Install dependencies (adjust for your package manager)
-npm install        # Node.js
-# or
-pip install -e .   # Python
+Swagger UI available at `http://localhost:5000/swagger` in development mode.
 
-# Copy environment variables template
-cp .env.example .env
-# Fill in required secrets in .env
+### Frontend
+
+```bash
+cd frontend
+npm install
+npx expo start          # then press w (web), i (iOS), a (Android)
 ```
 
 ### Environment Variables
 
-Never commit secrets. Use `.env` for local development and set secrets via the hosting platform or CI/CD secrets for deployment.
-
-Expected variables (update as the project evolves):
-
-```
-# API Keys
-OPENAI_API_KEY=
-ANTHROPIC_API_KEY=
-
-# Database
-DATABASE_URL=
-
-# Auth
-NEXTAUTH_SECRET=
-NEXTAUTH_URL=
-
-# App
-NODE_ENV=development
-```
-
-### Running the Project
+MongoDB connection string is configured in `appsettings.json` / `appsettings.Development.json`. Never commit secrets — use environment variables or user secrets for production credentials:
 
 ```bash
-# Development server
-npm run dev         # or: python manage.py runserver
-
-# Production build
-npm run build
-npm start
+# Override MongoDB connection via env var
+MongoDbSettings__ConnectionString=mongodb+srv://user:pass@cluster.mongodb.net
 ```
 
-### Running Tests
+---
 
-```bash
-# Run all tests
-npm test            # or: pytest
+## API Endpoints
 
-# Run with coverage
-npm run test:coverage   # or: pytest --cov
+### Celebrities (Admin CRUD)
 
-# Run specific test file
-npm test src/services/celebrity.test.ts
+| Method | Route | Description |
+|---|---|---|
+| `GET` | `/api/celebrities` | List all celebrities |
+| `GET` | `/api/celebrities/{id}` | Get one by ID |
+| `POST` | `/api/celebrities` | Create a celebrity |
+| `PUT` | `/api/celebrities/{id}` | Update a celebrity |
+| `DELETE` | `/api/celebrities/{id}` | Delete a celebrity |
+
+### Daily Challenge (Game)
+
+| Method | Route | Description |
+|---|---|---|
+| `GET` | `/api/dailychallenge` | Get today's challenge (image URL, initial tile) |
+| `POST` | `/api/dailychallenge/guess` | Submit a guess (`{ celebrityId, guess, tilesRevealed }`) |
+
+### Error Response Shape
+
+```json
+{ "error": { "code": "NOT_FOUND", "message": "Celebrity not found" } }
 ```
 
-### Linting and Formatting
+---
 
-```bash
-# Lint
-npm run lint        # or: ruff check .
+## Game Mechanics
 
-# Format
-npm run format      # or: ruff format .
+1. **6 tiles** in a 3x2 grid cover the celebrity image
+2. **1 tile** revealed initially (randomly selected, deterministic per day)
+3. Scoring per round:
 
-# Type checking (TypeScript)
-npm run typecheck   # tsc --noEmit
-```
+| Round | Tiles Open | Points on Correct Guess |
+|:-:|:-:|:-:|
+| 1 | 1 | 5 |
+| 2 | 2 | 4 |
+| 3 | 3 | 3 |
+| 4 | 4 | 2 |
+| 5 | 5 | 1 |
+| 6 | 6 | 0 (game over) |
 
-**Always run lint, format, and type checks before committing.**
+4. On correct guess or game over, all tiles reveal and celebrity info is shown
 
 ---
 
 ## Git Conventions
 
-### Branching Strategy
+### Branching
 
-- `main` — production-ready code; protected branch
-- `develop` — integration branch for features
-- `feature/<short-description>` — individual feature work
-- `fix/<short-description>` — bug fixes
-- `claude/<task-id>` — branches created by AI assistants
+- `main` — production-ready; protected
+- `feature/<description>` — feature work
+- `fix/<description>` — bug fixes
+- `claude/<task-id>` — AI assistant branches
 
 ### Commit Messages
 
@@ -168,28 +177,11 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
 <type>(<scope>): <short summary>
-
-[optional body]
-[optional footer]
 ```
 
 **Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`
 
-Examples:
-```
-feat(quiz): add celebrity knowledge scoring algorithm
-fix(auth): resolve token expiry on mobile sessions
-docs: update API endpoint documentation
-test(services): add unit tests for celebrity lookup
-```
-
-### Pull Requests
-
-- Keep PRs focused and small (one concern per PR)
-- Add a description that explains *why*, not just *what*
-- Link the related GitHub Issue (`Closes #<issue-number>`)
-- Ensure CI passes before requesting review
-- Request review from at least one human before merging to `main`
+**Scopes:** `game`, `admin`, `api`, `models`, `nav`, `ui`
 
 ---
 
@@ -197,114 +189,71 @@ test(services): add unit tests for celebrity lookup
 
 ### General
 
-- Prefer clarity over cleverness; code is read more than written
+- Prefer clarity over cleverness
 - Keep functions small and single-purpose
-- Avoid magic numbers/strings — use named constants
-- Do not commit dead code or commented-out blocks
-- Remove `console.log` / `print` debug statements before merging
+- No magic numbers/strings — use named constants
+- No dead code or commented-out blocks
+- No `console.log` / debug statements in committed code
 
 ### Naming
 
 | Element | Convention | Example |
 |---|---|---|
-| Files | `kebab-case` | `celebrity-service.ts` |
-| Components | `PascalCase` | `CelebrityCard.tsx` |
-| Functions/variables | `camelCase` | `getCelebrityById` |
-| Constants | `UPPER_SNAKE_CASE` | `MAX_QUIZ_QUESTIONS` |
-| Types/Interfaces | `PascalCase` | `CelebrityProfile` |
-| Database tables | `snake_case` | `celebrity_profiles` |
-| CSS classes | `kebab-case` or Tailwind utility | `quiz-container` |
+| C# files/classes | `PascalCase` | `CelebrityService.cs` |
+| C# methods | `PascalCase` | `GetAllAsync()` |
+| TS/TSX files | `PascalCase` | `GameScreen.tsx` |
+| TS functions/variables | `camelCase` | `handleGuess` |
+| TS interfaces | `PascalCase` | `GuessResponse` |
+| Constants | `UPPER_SNAKE_CASE` | `TOTAL_TILES` |
+| MongoDB collections | `snake_case` | `daily_challenges` |
 
-### TypeScript (if applicable)
+### TypeScript
 
-- Prefer `interface` over `type` for object shapes
-- Use strict mode (`"strict": true` in `tsconfig.json`)
+- Strict mode enabled (`"strict": true` in tsconfig)
+- Use `interface` for object shapes
 - Avoid `any`; use `unknown` when type is truly unknown
-- Export types from a central `types/` directory
+- Shared types live in `src/types/index.ts`
 
-### API Design
+### C# / ASP.NET
 
-- Follow RESTful conventions or GraphQL schema conventions
-- Version APIs: `/api/v1/celebrities`
-- Return consistent error shapes:
-  ```json
-  { "error": { "code": "NOT_FOUND", "message": "Celebrity not found" } }
-  ```
-- Use HTTP status codes correctly (200, 201, 400, 401, 403, 404, 500)
-
-### Testing
-
-- Write tests for all business logic in `services/`
-- Aim for >80% coverage on critical paths
-- Use descriptive test names: `it('returns 404 when celebrity does not exist')`
-- Mock external API calls in unit tests; use real calls in integration tests
+- Async everywhere — all service methods return `Task<T>`
+- Services registered as singletons (MongoDB driver is thread-safe)
+- Configuration via `IOptions<MongoDbSettings>` pattern
+- Controllers use consistent error response shape
 
 ---
 
 ## AI Assistant Guidelines
 
-These conventions apply specifically when Claude or another AI assistant is contributing to this repository.
-
 ### Read Before Writing
 
-Always read relevant files before modifying them. Never guess at existing interfaces, function signatures, or data shapes — look them up first.
+Always read relevant files before modifying them. Check existing interfaces, models, and service methods — do not guess.
 
 ### Minimal Changes
 
-Make only the changes necessary for the task at hand. Do not:
-- Refactor surrounding code unless asked
-- Add comments or documentation to unchanged code
-- Change formatting in files you are not otherwise modifying
-- Add features not requested by the issue or task description
+Make only the changes necessary for the task. Do not refactor surrounding code, add comments to unchanged code, or add unrequested features.
 
 ### Security
 
-Never introduce:
-- Hardcoded secrets, tokens, or credentials
-- SQL injection vulnerabilities (use parameterized queries)
-- XSS vulnerabilities (sanitize user input before rendering)
-- Command injection (avoid `exec`/`shell` with user input)
-- Exposed internal stack traces in API responses
+- No hardcoded secrets, tokens, or credentials
+- Use parameterized queries (MongoDB driver handles this)
+- Validate user input on the backend
+- Do not expose stack traces in API responses
 
-### External Dependencies
+### Dependencies
 
-- Prefer existing libraries already in `package.json` / `pyproject.toml`
-- Do not add new dependencies without noting them in the PR description
-- Avoid dependencies with poor maintenance history or security track records
+- Prefer libraries already in `package.json` / `.csproj`
+- Note any new dependencies in the PR description
 
-### Environment and Secrets
+### Key Files to Understand
 
-- Read secrets from environment variables only
-- Never log secrets, tokens, or PII
-- Do not add `.env` files to version control
-
-### Commit and Push Behavior
-
-- Branch names created by AI assistants must follow: `claude/<task-id>`
-- Commit messages must follow Conventional Commits format
-- Always push to the designated feature branch; never push directly to `main`
-
----
-
-## Issue and Task Workflow
-
-1. Pick up an issue from GitHub Issues
-2. Create a branch: `git checkout -b feature/<description>` (or `claude/<id>` for AI tasks)
-3. Implement changes with tests
-4. Run lint, format, type check, and tests locally
-5. Push branch and open a PR against `develop` (or `main` if no develop branch)
-6. Address review feedback
-7. Merge after approval and green CI
-
----
-
-## CI/CD
-
-> Document your GitHub Actions workflows here once they are added.
-
-Expected workflows:
-- `ci.yml` — runs on every PR: lint, type-check, test
-- `deploy.yml` — runs on push to `main`: build and deploy to production
+| To modify... | Read first... |
+|---|---|
+| Game logic | `GameScreen.tsx`, `DailyChallengeService.cs`, `DailyChallengeController.cs` |
+| Celebrity data | `Celebrity.cs`, `CelebrityService.cs`, `CelebritiesController.cs` |
+| API client | `src/services/api.ts`, `src/types/index.ts` |
+| Navigation | `AppNavigator.tsx`, `src/types/index.ts` (param lists) |
+| Tile rendering | `TileGrid.tsx` |
 
 ---
 
@@ -312,16 +261,6 @@ Expected workflows:
 
 - GitHub Repository: https://github.com/vaibhavsubnis/CelebrityIQ
 - Issue Tracker: https://github.com/vaibhavsubnis/CelebrityIQ/issues
-
----
-
-## Updating This File
-
-Keep CLAUDE.md up to date as the project evolves. In particular, update:
-
-- **Tech Stack** when libraries or frameworks are decided
-- **Directory Structure** when the actual layout diverges from the template
-- **Commands** when scripts change in `package.json` / `Makefile`
-- **Conventions** when the team adopts new patterns
-
-This file is the source of truth for AI assistants working in this codebase.
+- Expo Docs: https://docs.expo.dev/
+- ASP.NET Core Docs: https://learn.microsoft.com/en-us/aspnet/core/
+- MongoDB .NET Driver: https://www.mongodb.com/docs/drivers/csharp/current/
