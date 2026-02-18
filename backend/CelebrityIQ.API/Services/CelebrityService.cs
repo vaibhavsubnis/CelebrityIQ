@@ -5,7 +5,7 @@ using MongoDB.Driver;
 
 namespace CelebrityIQ.API.Services;
 
-public class CelebrityService
+public class CelebrityService : ICelebrityService
 {
     private readonly IMongoCollection<Celebrity> _celebrities;
 
@@ -14,6 +14,12 @@ public class CelebrityService
         var client = new MongoClient(settings.Value.ConnectionString);
         var database = client.GetDatabase(settings.Value.DatabaseName);
         _celebrities = database.GetCollection<Celebrity>(settings.Value.CelebritiesCollectionName);
+    }
+
+    // Testable constructor — accepts a pre-built collection (used by unit tests)
+    internal CelebrityService(IMongoCollection<Celebrity> collection)
+    {
+        _celebrities = collection;
     }
 
     public async Task<List<Celebrity>> GetAllAsync() =>

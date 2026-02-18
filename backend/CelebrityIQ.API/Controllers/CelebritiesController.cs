@@ -8,9 +8,9 @@ namespace CelebrityIQ.API.Controllers;
 [Route("api/[controller]")]
 public class CelebritiesController : ControllerBase
 {
-    private readonly CelebrityService _celebrityService;
+    private readonly ICelebrityService _celebrityService;
 
-    public CelebritiesController(CelebrityService celebrityService)
+    public CelebritiesController(ICelebrityService celebrityService)
     {
         _celebrityService = celebrityService;
     }

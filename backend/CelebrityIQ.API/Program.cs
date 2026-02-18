@@ -8,8 +8,8 @@ builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDbSettings"));
 
 // Services
-builder.Services.AddSingleton<CelebrityService>();
-builder.Services.AddSingleton<DailyChallengeService>();
+builder.Services.AddSingleton<ICelebrityService, CelebrityService>();
+builder.Services.AddSingleton<IDailyChallengeService, DailyChallengeService>();
 
 // Controllers
 builder.Services.AddControllers();

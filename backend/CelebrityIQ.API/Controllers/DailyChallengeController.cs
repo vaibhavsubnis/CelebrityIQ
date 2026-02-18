@@ -8,9 +8,9 @@ namespace CelebrityIQ.API.Controllers;
 [Route("api/[controller]")]
 public class DailyChallengeController : ControllerBase
 {
-    private readonly DailyChallengeService _dailyChallengeService;
+    private readonly IDailyChallengeService _dailyChallengeService;
 
-    public DailyChallengeController(DailyChallengeService dailyChallengeService)
+    public DailyChallengeController(IDailyChallengeService dailyChallengeService)
     {
         _dailyChallengeService = dailyChallengeService;
     }
